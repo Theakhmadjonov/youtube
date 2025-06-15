@@ -63,9 +63,11 @@ export class AuthService {
       if (findUser) throw new ConflictException('User alreday exists');
       const key = `session:${data.phone}`;
       await this.otp.CheckTokenUSer(key, data.session_token);
+      const hashedPassword = await bcrypt.hash(data.password, 12);
       const user = await this.db.prisma.user.create({
         data: {
           ...data,
+          password: hashedPassword,
         },
       });
       const token = await this.jwt.signAsync({ userId: user.id });
@@ -82,6 +84,13 @@ export class AuthService {
         where: { phone: data.phone },
       });
       if (!findUser) throw new ConflictException('User not found');
+      const checkPassword = await bcrypt.compare(
+        data.password,
+        findUser.password,
+      );
+      if (!checkPassword) {
+        throw new UnauthorizedException('Incorrect password');
+      }
       const res = await this.otp.sendOtp(data.phone);
       console.log(res);
       if (!res) throw new InternalServerErrorException('Server error');

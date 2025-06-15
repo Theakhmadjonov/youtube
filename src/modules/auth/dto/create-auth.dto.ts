@@ -47,5 +47,9 @@ export class RegisterDto {
   phone: string;
 
   @IsString()
+  @IsStrongPassword()
+  password: string;
+
+  @IsString()
   session_token: string;
 }

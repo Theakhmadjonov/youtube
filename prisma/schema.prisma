@@ -13,6 +13,7 @@ model User {
   username        String         @unique
   phone           String         @unique
   firstName       String
+  password        String
   lastName        String
   avatar          String?
   role            Role           @default(USER)
@@ -59,8 +60,19 @@ model Video {
   comments      Comment[]
   likes         Like[]
   PlaylistVideo PlaylistVideo[]
+  VideoFormats  VideoFormats[]
 
   @@map("videos")
+}
+
+model VideoFormats {
+  id         String @id @default(uuid())
+  resolution String
+  url        String
+  videoId    String
+  video      Video  @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@map("video_formats")
 }
 
 // KEYINROQ QO'SHISH MUMKIN:
