@@ -10,6 +10,7 @@ import { AuthService } from './auth.service';
 import { CreateAuthDto, RegisterDto, verifyOtp } from './dto/create-auth.dto';
 import { Request, Response } from 'express';
 import { sendCodeLoginDto, verifyCodeLoginDto } from './dto/login-auth.dto';
+
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}

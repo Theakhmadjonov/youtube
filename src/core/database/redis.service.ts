@@ -26,6 +26,12 @@ export class RedisService {
     return res;
   }
 
+  async setOtpEmail(email: string, otp: string): Promise<string> {
+    const key = `user_email:${email}`;
+    const res = await this.redis.setex(key, this.duration, otp);
+    return res;
+  }
+
   async getOtp(key: string) {
     const otp = await this.redis.get(key);
     return otp;

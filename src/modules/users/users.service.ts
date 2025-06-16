@@ -1,14 +1,25 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  CreateUserDto,
+  sendOtpEmail,
+  verifyOtpEmail,
+} from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { EmailService } from '../auth/email-otp.service';
 import { PrismaService } from 'src/core/database/prisma.service';
+import { OtpService } from '../auth/otp.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     private email: EmailService,
     private db: PrismaService,
+    private otp: OtpService,
   ) {}
   async sendEmailVerificationLink(email: string) {
     const existedEmail = await this.db.prisma.user.findFirst({
@@ -38,5 +49,43 @@ export class UsersService {
     return {
       message: 'Your email verified',
     };
+  }
+
+  async sendOtpEmail(userId: string, email: string) {
+    try {
+      const existUser = await this.db.prisma.user.findFirst({
+        where: { id: userId },
+      });
+      if (!existUser) throw new NotFoundException('User not found');
+      const res = await this.otp.sendOtpToEmail(email);
+      if (!res) throw new InternalServerErrorException('Server error');
+      return {
+        message: `Code sended to your ${email} email`,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException('Internal server error');
+    }
+  }
+
+  async verifyUserCodeEmail(data: verifyOtpEmail, userId: string) {
+    try {
+      const key = `user_email:${data.email}`;
+      await this.otp.verifyOtpSendedCodeEmail(key, data.code, data.email);
+      const verifyedUserEmail = await this.db.prisma.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          isEmailVerified: true,
+        },
+      });
+      return {
+        message: 'success',
+        statusCode: 200,
+        verifyedUserEmail
+      };
+    } catch (error) {
+      throw new InternalServerErrorException('Internal server error');
+    }
   }
 }

@@ -10,7 +10,7 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileUploadInterceptor } from 'src/interceptors/file-upload.interceptor';
+import { FileUploadInterceptor } from 'src/common/interceptors/file-upload.interceptor';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { VideoService } from './video.service';
 @Controller('movies')

@@ -2,7 +2,8 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { RedisService } from 'src/core/database/redis.service';
 import { generate } from 'otp-generator';
 import { SMSService } from './sms.service';
-import OtpSecurityService from './otp.security.service'
+import OtpSecurityService from './otp.security.service';
+import { EmailService } from './email-otp.service';
 
 @Injectable()
 export class OtpService {
@@ -10,6 +11,7 @@ export class OtpService {
     private redis: RedisService,
     private sms: SMSService,
     private otpSecurity: OtpSecurityService,
+    private email: EmailService,
   ) {}
 
   generateOtp() {
@@ -34,6 +36,17 @@ export class OtpService {
     const responseRedis = await this.redis.setOtp(phone, tempOtp);
     if (responseRedis == 'ok') {
       await this.sms.sendSms(phone, tempOtp);
+      return true;
+    }
+  }
+
+  async sendOtpToEmail(email: string) {
+    await this.otpSecurity.checkIfTemporaryBlockedUserEmail(email);
+    await this.checkOtp(`user_email:${email}`);
+    const tempOtp = this.generateOtp();
+    const responseRedis = await this.redis.setOtpEmail(email, tempOtp);
+    if (responseRedis == 'ok') {
+      await this.email.sendCodeEmail(email, tempOtp);
       return true;
     }
   }
@@ -64,6 +77,25 @@ export class OtpService {
     const sessionToken = this.getSessionToken();
     await this.redis.setSessionTokenUser(phone, sessionToken);
     return sessionToken;
+  }
+
+  async verifyOtpSendedCodeEmail(key: string, code: string, email: string) {
+    await this.otpSecurity.checkIfTemporaryBlockedUserEmail(email);
+    const otp = await this.redis.getOtp(key);
+    if (!otp) {
+      throw new BadRequestException('Code invalid');
+    }
+    if (otp !== code) {
+      const attempts =
+        await this.otpSecurity.recordFailedOtpAttemptsEmail(email);
+      throw new BadRequestException({
+        message: 'Code invalid',
+        attempts: `You have ${attempts} attempts`,
+      });
+    }
+    await this.redis.delOtp(key);
+    await this.otpSecurity.delOtpAttempts(`otp_attempts_email:${email}`);
+    return true;
   }
 
   async verifySendedCodeLogin(key: string, code: string) {

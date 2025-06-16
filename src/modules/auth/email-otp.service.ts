@@ -28,7 +28,7 @@ export class EmailService {
       await this.resend.send({
         from: fromEmail,
         to: email,
-        subject: 'YouTube_verification_link',
+        subject: 'Email_verification_link',
         html: `<a href=${url}>VerificationLink</a>`,
       });
     } catch (error) {
@@ -36,8 +36,18 @@ export class EmailService {
     }
   }
 
-  async sendCodeEmail(email: string) {
-    const otp = this.otp.generateOtp();
+  async sendCodeEmail(email: string, otp: string) {
+    const fromEmail = this.config.get('HOST_EMAIL') as string;
+    try {
+      await this.resend.send({
+        from: fromEmail,
+        to: email,
+        subject: 'Email_verification_code',
+        html: `<h1>${otp}</h1>`,
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
   }
 
   async setEmailToken(token: string, email: string) {

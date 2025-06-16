@@ -3,10 +3,12 @@ import { DatabaseModule } from './database/database.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ResendModule } from 'nestjs-resend';
+import { SeederModule } from './database/seeders/seeder.module';
 
 @Module({
   imports: [
     DatabaseModule,
+    SeederModule,
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true,
