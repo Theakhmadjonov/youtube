@@ -9,9 +9,9 @@ import {
   Query,
   Req,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { sendOtpEmail, verifyOtpEmail } from './dto/create-user.dto';
 import { Request } from 'express';
+import { verifyOtpEmail } from './dto/create-user.dto';
+import { UsersService } from './users.service';
 
 @Controller()
 export class UsersController {

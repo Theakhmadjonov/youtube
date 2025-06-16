@@ -8,25 +8,29 @@ datasource db {
 }
 
 model User {
-  id              String         @id @default(uuid())
-  email           String         @unique
-  username        String         @unique
-  phone           String         @unique
-  firstName       String
-  password        String
-  lastName        String
-  avatar          String?
-  role            Role           @default(USER)
-  isEmailVerified Boolean        @default(false)
-  isPhoneVerified Boolean        @default(true)
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  videos          Video[]
-  comments        Comment[]
-  likes           Like[]
-  subscriptions   Subscription[] @relation("UserSubscriptions")
-  subscribers     Subscription[] @relation("UserSubscribers")
-  playlists       Playlist[]
+  id                 String   @id @default(uuid())
+  email              String   @unique
+  username           String   @unique
+  phone              String   @unique
+  firstName          String
+  password           String
+  lastName           String
+  avatar             String?
+  role               Role     @default(USER)
+  isEmailVerified    Boolean  @default(false)
+  isPhoneVerified    Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  channelName        String?
+  channelDescription String?
+  channelBanner      String?
+
+  videos        Video[]
+  comments      Comment[]
+  likes         Like[]
+  subscriptions Subscription[] @relation("UserSubscriptions")
+  subscribers   Subscription[] @relation("UserSubscribers")
+  playlists     Playlist[]
 
   @@map("users")
 }
@@ -61,6 +65,7 @@ model Video {
   likes         Like[]
   PlaylistVideo PlaylistVideo[]
   VideoFormats  VideoFormats[]
+  View          View[]
 
   @@map("videos")
 }
@@ -160,6 +165,19 @@ model Like {
   @@unique([userId, videoId, type])
   @@unique([userId, commentId, type])
   @@map("likes")
+}
+
+model View {
+  id        String   @id @default(uuid())
+  videoId   String
+  video     Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  watchTime Int
+  quality   String
+  device    String
+  location  String
+  createdAt DateTime @default(now())
+
+  @@map("views")
 }
 
 enum LikeType {
