@@ -1,7 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { fileFilter, multerConfig } from "src/video/multer.config";
-
+import { fileFilter, multerConfig } from "src/modules/video/multer.config";
 
 @Injectable()
 export class FileUploadInterceptor extends FileInterceptor('file', {

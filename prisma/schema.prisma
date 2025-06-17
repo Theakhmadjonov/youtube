@@ -58,6 +58,7 @@ model Video {
   viewsCount    BigInt          @default(0)
   likesCount    Int             @default(0)
   dislikesCount Int             @default(0)
+  category      Category?        @default(ENTERTAINMENT)
   createdAt     DateTime        @default(now())
   authorId      String
   author        User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
@@ -235,4 +236,9 @@ enum Visibility {
   PUBLIC
   UNLISTED
   PRIVATE
+}
+
+enum Category {
+  EDUCATION
+  ENTERTAINMENT
 }

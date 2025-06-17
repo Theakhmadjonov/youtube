@@ -1,7 +1,15 @@
 // src/video/dto/create-video.dto.ts
 
-import { IsString, IsOptional, IsInt, IsEnum, IsUrl, Min, MaxLength } from 'class-validator';
-import { VideoStatus, Visibility } from '@prisma/client';
+import {
+  IsString,
+  IsOptional,
+  IsInt,
+  IsEnum,
+  IsUrl,
+  Min,
+  MaxLength,
+} from 'class-validator';
+import { Category, VideoStatus, Visibility } from '@prisma/client';
 
 export class CreateVideoDto {
   @IsString()
@@ -22,16 +30,20 @@ export class CreateVideoDto {
 
   @IsInt()
   @Min(1)
-  duration: number; 
+  duration: number;
 
   @IsOptional()
   @IsEnum(VideoStatus)
-  status?: VideoStatus; 
+  status?: VideoStatus;
 
   @IsOptional()
   @IsEnum(Visibility)
-  visibility?: Visibility; 
+  visibility?: Visibility;
 
   @IsString()
-  authorId: string; 
+  authorId: string;
+
+  @IsOptional()
+  @IsEnum(Category)
+  category?: Category;
 }

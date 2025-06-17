@@ -7,16 +7,14 @@ import {
   Param,
   Post,
   Query,
-  SetMetadata,
   UploadedFile,
   UseGuards,
-  UseInterceptors,
+  UseInterceptors
 } from '@nestjs/common';
+import { AuthGuard } from 'src/common/guards/auth.guard';
 import { FileUploadInterceptor } from 'src/common/interceptors/file-upload.interceptor';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { VideoService } from './video.service';
-import { AuthGuard } from 'src/common/guards/auth.guard';
-import { RoleGuard } from 'src/common/guards/role.guard';
 @UseGuards(AuthGuard)
 @Controller('movies')
 export class VideosController {
