@@ -11,6 +11,7 @@ import { JwtService } from '@nestjs/jwt';
 import { CreateAuthDto, RegisterDto, verifyOtp } from './dto/create-auth.dto';
 import bcrypt from 'bcrypt';
 import { sendCodeLoginDto, verifyCodeLoginDto } from './dto/login-auth.dto';
+import { UpdateAuthDto } from './dto/update-auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -141,5 +142,14 @@ export class AuthService {
       },
     });
     return userInfo;
+  }
+
+  async updatedUSerProfile(data: UpdateAuthDto, userId: string) {
+    if (data.password) {
+      const hashedPassword = await bcrypt.hash(data.password, 12);
+      return await this.db.prisma.user.update({ where: { id: userId }, data: { ...data, password: hashedPassword } });
+    } else {
+      return await this.db.prisma.user.update({ where: { id: userId }, data: { ...data } });
+    }
   }
 }

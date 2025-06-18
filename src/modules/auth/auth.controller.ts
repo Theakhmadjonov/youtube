@@ -7,11 +7,13 @@ import {
   Res,
   Get,
   Req,
+  Put,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto, RegisterDto, verifyOtp } from './dto/create-auth.dto';
 import { Request, Response } from 'express';
 import { sendCodeLoginDto, verifyCodeLoginDto } from './dto/login-auth.dto';
+import { UpdateAuthDto } from './dto/update-auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -86,6 +88,16 @@ export class AuthController {
     try {
       const userId = req['userId'];
       return await this.authService.getMe(userId);
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Put('/users/me')
+  async updatedUserInfo(@Body() data: UpdateAuthDto, @Req() req: Request) {
+    try {
+      const userId = req['userId'];
+      return await this.authService.updatedUSerProfile(data, userId);
     } catch (error) {
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }

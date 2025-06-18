@@ -16,6 +16,7 @@ model User {
   password           String
   lastName           String
   avatar             String?
+  status             Status         @default(active)
   role               Role           @default(USER)
   isEmailVerified    Boolean        @default(false)
   isPhoneVerified    Boolean        @default(true)
@@ -241,4 +242,10 @@ enum Visibility {
 enum Category {
   EDUCATION
   ENTERTAINMENT
+}
+
+enum Status {
+  active
+  block
+  verify
 }

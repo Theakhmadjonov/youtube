@@ -4,9 +4,10 @@ import { VideoAnalyticsModule } from './modules/video-analytics/video-analytics.
 import { ChannelModule } from './modules/channel/channel.module';
 import { CommentModule } from './modules/comment/comment.module';
 import { PlaylistModule } from './modules/playlist/playlist.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
-  imports: [CoreModule, VideoAnalyticsModule, ChannelModule, CommentModule, PlaylistModule],
+  imports: [CoreModule, VideoAnalyticsModule, ChannelModule, CommentModule, PlaylistModule, AdminModule],
   controllers: [],
   providers: [],
 })
