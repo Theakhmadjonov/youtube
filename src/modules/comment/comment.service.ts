@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { PrismaService } from 'src/core/database/prisma.service';
+import { LikeType } from '@prisma/client';
 
 @Injectable()
 export class CommentService {
@@ -66,15 +67,93 @@ export class CommentService {
     }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} comment`;
+  async addLike(userId: string, commentId: string) {
+    const existComment = await this.db.prisma.comment.findFirst({ where: { id: commentId } });
+    if (!existComment) throw new NotFoundException('Comment not found');
+       await this.db.prisma.like.deleteMany({
+      where: {
+        userId,
+        commentId,
+        type: LikeType.DISLIKE,
+      },
+    });
+    const addedLIke = await this.db.prisma.like.upsert({
+      where: {
+        userId_commentId_type: {
+          userId,
+          commentId,
+          type: LikeType.LIKE,
+        },
+      },
+      update: {},
+      create: {
+        userId,
+        commentId,
+        type: LikeType.LIKE,
+      },
+    });
+    return addedLIke;
   }
 
-  update(id: number, updateCommentDto: UpdateCommentDto) {
-    return `This action updates a #${id} comment`;
+  async addDisLike(userId: string, commentId: string) {
+    const existComment = await this.db.prisma.comment.findFirst({ where: { id: commentId } });
+    if (!existComment) throw new NotFoundException('Comment not found');
+       await this.db.prisma.like.deleteMany({
+      where: {
+        userId,
+        commentId,
+        type: LikeType.LIKE,
+      },
+    });
+    const addedDisLIke = await this.db.prisma.like.upsert({
+      where: {
+        userId_commentId_type: {
+          userId,
+          commentId,
+          type: LikeType.DISLIKE,
+        },
+      },
+      update: {},
+      create: {
+        userId,
+        commentId,
+        type: LikeType.DISLIKE,
+      },
+    });
+    return addedDisLIke;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} comment`;
+  async deleteLike(userId: string, commentId: string) {
+    const existComment = await this.db.prisma.comment.findFirst({ where: { id: commentId } });
+    if (!existComment) throw new NotFoundException('Comment not found');
+       await this.db.prisma.like.deleteMany({
+      where: {
+        userId,
+        commentId,
+        type: LikeType.LIKE,
+      },
+    });
+  }
+
+   async togglePin(commentId: string, userId: string) {
+    const comment = await this.db.prisma.comment.findUnique({
+      where: { id: commentId },
+      include: { video: true },
+    });
+
+    if (!comment) throw new NotFoundException('Comment not found');
+
+    if (comment.video.authorId !== userId) {
+      throw new Error('Only video author can pin this comment');
+    }
+
+    const updated = await this.db.prisma.comment.update({
+      where: { id: commentId },
+      data: { isPinned: !comment.isPinned },
+    });
+
+    return {
+      message: updated.isPinned ? 'Comment pinned' : 'Comment unpinned',
+    };
   }
 }

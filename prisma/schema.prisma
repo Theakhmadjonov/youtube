@@ -92,22 +92,22 @@ model VideoFormats {
 // - playlistVideos PlaylistVideo[]
 
 model Comment {
-  id         String   @id @default(uuid())
-  content    String
-  likesCount Int      @default(0)
-  createdAt  DateTime @default(now())
-  authorId   String
-  author     User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  videoId    String
-  isPinned   Boolean  @default(false)
-  video      Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
-  likes      Like[]
+  id            String   @id @default(uuid())
+  content       String
+  likesCount    Int      @default(0)
+  dislikesCount Int      @default(0)
+  createdAt     DateTime @default(now())
+  authorId      String
+  author        User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  videoId       String
+  isPinned      Boolean  @default(false)
+  video         Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  likes         Like[]
 
   @@map("comments")
 }
 
 // KEYINROQ QO'SHISH MUMKIN (REPLY SYSTEM):
-// - dislikesCount Int @default(0)
 // - isPinned Boolean @default(false)
 // - updatedAt DateTime @updatedAt
 // - parentId String?

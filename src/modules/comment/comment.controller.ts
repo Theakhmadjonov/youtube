@@ -15,7 +15,6 @@ import {
 import { Request } from 'express';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { CommentService } from './comment.service';
-import { UpdateCommentDto } from './dto/update-comment.dto';
 
 @UseGuards(AuthGuard)
 @Controller()
@@ -52,18 +51,41 @@ export class CommentController {
     }
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.commentService.findOne(+id);
+  @Post('comments/:id/like')
+  async addLike(@Param('id') commentId: string, @Req() req: Request) {
+    try {
+      const userId = req['userId'];
+      return await this.commentService.addLike(userId, commentId);
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCommentDto: UpdateCommentDto) {
-    return this.commentService.update(+id, updateCommentDto);
+  @Post('comments/:id/dislike')
+  async addDisLike(@Param('id') commentId: string, @Req() req: Request) {
+    try {
+      const userId = req['userId'];
+      return await this.commentService.addDisLike(userId, commentId);
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.commentService.remove(+id);
+  @Delete('comments/:id/like')
+  async RemoveLike(@Param('id') commentId: string, @Req() req: Request) {
+    try {
+      const userId = req['userId'];
+      return await this.commentService.deleteLike(userId, commentId);
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Patch('comments/:id/pin')
+  async togglePin(@Param('id') commentId: string, @Req() req: Request) {
+    try {
+      const userId = req['userId'];
+      return await this.commentService.togglePin(userId, commentId);
+    } catch (error) {}
   }
 }
