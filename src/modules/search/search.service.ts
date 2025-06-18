@@ -1,14 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { subHours, subDays, subWeeks, subMonths, subYears } from 'date-fns';
-import { PrismaService } from 'src/core/database/prisma.service';
 import { VideoStatus, Visibility } from '@prisma/client';
-
+import { subDays, subHours, subMonths, subWeeks, subYears } from 'date-fns';
+import { PrismaService } from 'src/core/database/prisma.service';
 
 @Injectable()
 export class SearchService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async search(query: string, type: string, limit: number, page: number, sort: string, duration: string, uploaded: string ) {
+  async search(
+    query: string,
+    type: string,
+    limit: number,
+    page: number,
+    sort: string,
+    duration: string,
+    uploaded: string,
+  ) {
     const skip = (page - 1) * limit;
     const where: any = {
       OR: [
@@ -19,11 +26,12 @@ export class SearchService {
       status: 'PUBLISHED',
     };
     if (duration !== 'any') {
-      where.duration = duration === 'short'
-        ? { lt: 240 }
-        : duration === 'medium'
-        ? { gte: 240, lt: 1200 } 
-        : { gte: 1200 }; 
+      where.duration =
+        duration === 'short'
+          ? { lt: 240 }
+          : duration === 'medium'
+            ? { gte: 240, lt: 1200 }
+            : { gte: 1200 };
     }
     if (uploaded !== 'anytime') {
       const now = new Date();
@@ -101,8 +109,8 @@ export class SearchService {
       ? await this.prisma.prisma.video.findUnique({ where: { id: videoId } })
       : null;
     const where = {
-      status: VideoStatus.PUBLISHED,   
-      visibility: Visibility.PUBLIC,   
+      status: VideoStatus.PUBLISHED,
+      visibility: Visibility.PUBLIC,
       ...(video?.category && { category: video.category }),
       ...(video?.id && { NOT: { id: video.id } }),
     };

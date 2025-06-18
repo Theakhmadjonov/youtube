@@ -4,9 +4,12 @@ import {
   HttpException,
   HttpStatus,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from 'src/common/guards/auth.guard';
 import { SearchService } from './search.service';
 
+@UseGuards(AuthGuard)
 @Controller('search')
 export class SearchController {
   constructor(private readonly searchService: SearchService) {}
