@@ -5,6 +5,8 @@ import {
   HttpStatus,
   Body,
   Res,
+  Get,
+  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto, RegisterDto, verifyOtp } from './dto/create-auth.dto';
@@ -74,6 +76,16 @@ export class AuthController {
         maxAge: 1.1 * 3600 * 1000,
       });
       return { token };
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @Get('users/me')
+  async getMe(@Req() req: Request) {
+    try {
+      const userId = req['userId'];
+      return await this.authService.getMe(userId);
     } catch (error) {
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }

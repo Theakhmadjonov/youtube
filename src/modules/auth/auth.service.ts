@@ -104,18 +104,42 @@ export class AuthService {
 
   async verifyCodeLogin(data: verifyCodeLoginDto) {
     try {
-      const existedUser = await this.db.prisma.user.findUnique({ where: { phone: data.phone } });
+      const existedUser = await this.db.prisma.user.findUnique({
+        where: { phone: data.phone },
+      });
       if (!existedUser) throw new BadRequestException('User not found');
       const key = `user:${data.phone}`;
-      await this.otp.verifySendedCodeLogin(
-        key,
-        data.code,
-      );
+      await this.otp.verifySendedCodeLogin(key, data.code);
       const token = await this.jwt.signAsync({ userId: existedUser.id });
       await this.otp.delTokenUser(key);
       return token;
     } catch (error) {
       throw new InternalServerErrorException('Internal server error');
     }
+  }
+
+  async getMe(userId: string) {
+    const userInfo = await this.db.prisma.user.findFirst({
+      where: { id: userId },
+      select: {
+        avatar: true || '',
+        channelBanner: true || '',
+        channelDescription: true,
+        channelName: true,
+        comments: true,
+        createdAt: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        isEmailVerified: true,
+        isPhoneVerified: true,
+        phone: true,
+        playlists: true,
+        subscribers: true,
+        subscriptions: true,
+        username: true,
+      },
+    });
+    return userInfo;
   }
 }
