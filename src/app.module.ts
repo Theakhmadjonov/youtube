@@ -8,6 +8,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import TransformInterceoptor from './common/interceptors/transform.interceptor';
 import { AuthGuard } from './common/guards/auth.guard';
+import { SearchModule } from './modules/search/search.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { AuthGuard } from './common/guards/auth.guard';
     CommentModule,
     PlaylistModule,
     AdminModule,
+    SearchModule,
   ],
   controllers: [],
   providers: [
