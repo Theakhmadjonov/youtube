@@ -1,9 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, HttpStatus, HttpException } from '@nestjs/common';
-import { CommentService } from './comment.service';
-import { CreateCommentDto } from './dto/create-comment.dto';
-import { UpdateCommentDto } from './dto/update-comment.dto';
-import { AuthGuard } from 'src/common/guards/auth.guard';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpException,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { Request } from 'express';
+import { AuthGuard } from 'src/common/guards/auth.guard';
+import { CommentService } from './comment.service';
+import { UpdateCommentDto } from './dto/update-comment.dto';
 
 @UseGuards(AuthGuard)
 @Controller()
@@ -11,7 +23,11 @@ export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 
   @Post('videos/:videoId/comments')
-  async create(@Body() content: string, @Param('videoId') videoId: string, @Req() req: Request) {
+  async create(
+    @Body() content: string,
+    @Param('videoId') videoId: string,
+    @Req() req: Request,
+  ) {
     try {
       const userId = req['userId'];
       return await this.commentService.create(content, userId, videoId);
@@ -20,9 +36,20 @@ export class CommentController {
     }
   }
 
-  @Get()
-  findAll() {
-    return this.commentService.findAll();
+  @Get('videos/:videoId/comments')
+  async getComment(
+    @Param('videoId') videoId: string,
+    @Req() req: Request,
+    @Query('limit') limit: string,
+    @Query('page') page: string,
+    @Query('sort') sort: string,
+  ) {
+    try {
+      const userId = req['userId'];
+      return await this.commentService.getComment(videoId, +limit, +page, sort);
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   @Get(':id')

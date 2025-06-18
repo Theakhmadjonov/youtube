@@ -42,8 +42,8 @@ export class ChannelController {
     try {
       return await this.channelService.getChannelVideos(
         username,
-        Number(page),
-        Number(limit),
+        +page,
+        +limit,
         sort,
       );
     } catch (error) {
