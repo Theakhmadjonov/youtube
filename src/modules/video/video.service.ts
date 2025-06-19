@@ -1,157 +1,243 @@
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import ffmpeg from 'fluent-ffmpeg';
-import ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
+import { Response } from 'express';
+import fs from 'fs';
 import path from 'path';
 import { PrismaService } from 'src/core/database/prisma.service';
-import { CreateVideoDto } from './dto/create-video.dto';
-import { promises as fs } from 'fs';
-
-ffmpeg.setFfmpegPath(ffmpegInstaller.path);
+import VideoUploadService from 'src/core/video-upload.service';
+import { CreateVideoDto, UpdateVideoDto } from './dto/create-video.dto';
+import { Category } from '@prisma/client';
 
 @Injectable()
 export class VideoService {
-  private outputPath = path.join(process.cwd(), 'uploads', 'converted');
-
-  constructor(private db: PrismaService) {}
-
-  async createVideo(dto: CreateVideoDto, file: Express.Multer.File) {
-    try {
-      const convertedFormats = await this.convertVideo(file);
-      const duration = await this.getVideoDuration(convertedFormats[0].path);
-      const newVideo = await this.db.prisma.video.create({
-        data: {
-          ...dto,
-          videoUrl: convertedFormats[0].path,
-          duration,
-          status: 'PUBLISHED',
-        },
-      });
-      await this.db.prisma.videoFormats.createMany({
-        data: convertedFormats.map((format) => ({
-          videoId: newVideo.id,
-          resolution: format.label,
-          url: format.path,
-        })),
-      });
-      return newVideo;
-    } catch (error) {
-      console.error(error);
-      throw new InternalServerErrorException('Video upload failed');
-    }
-  }
-
-  private async convertVideo(
-    file: Express.Multer.File,
-  ): Promise<{ label: string; path: string }[]> {
-    const inputPath = file.path;
-    const fileName = path.parse(file.filename).name;
-
+  constructor(
+    private videoUploadService: VideoUploadService,
+    private db: PrismaService,
+  ) {}
+  async uploadVideo(file: Express.Multer.File, data: CreateVideoDto) {
+    const fileName = file.filename;
+    const videoPath = path.join(process.cwd(), 'uploads', fileName);
+    const resolution: any =
+      await this.videoUploadService.getVideoResolution(videoPath);
     const resolutions = [
-      { label: '360p', size: '640x360' },
-      { label: '480p', size: '854x480' },
-      { label: '720p', size: '1280x720' },
-      { label: '1080p', size: '1920x1080' },
+      { height: 240 },
+      { height: 360 },
+      { height: 480 },
+      { height: 720 },
+      { height: 1080 },
     ];
-    await fs.mkdir(this.outputPath, { recursive: true });
-    const conversionPromises = resolutions.map(({ label, size }) => {
-      const outputFilePath = path.join(
-        this.outputPath,
-        `${fileName}_${label}.mp4`,
+    const validResolutions = resolutions.filter(
+      (r) => r.height <= resolution.height + 6,
+    );
+    if (validResolutions.length > 0) {
+      const folderPath = path.join(
+        process.cwd(),
+        'uploads',
+        'videos',
+        fileName.split('.')[0],
       );
-      return new Promise<{ label: string; path: string }>((resolve, reject) => {
-        ffmpeg(inputPath)
-          .outputOptions('-preset veryfast')
-          .size(size)
-          .output(outputFilePath)
-          .on('end', () => resolve({ label, path: outputFilePath }))
-          .on('error', (err) => reject(`Error in ${label}: ${err.message}`))
-          .run();
+      fs.mkdir(folderPath, { recursive: true }, (err) => {
+        if (err) throw new InternalServerErrorException(err);
       });
-    });
-
-    return await Promise.all(conversionPromises);
-  }
-
-  private getVideoDuration(filePath: string): Promise<number> {
-    return new Promise((resolve, reject) => {
-      ffmpeg.ffprobe(filePath, (err, metadata) => {
-        if (err) return reject(err);
-        resolve(Math.floor(metadata.format.duration || 0));
-      });
-    });
-  }
-
-  async getOneVideo(id: string) {
-    try {
-      return await this.db.prisma.video.findFirstOrThrow({
-        where: { id },
-        select: {
-          VideoFormats: true,
-          author: true,
-          authorId: true,
-          createdAt: true,
-          description: true,
-          duration: true,
-          likes: true,
-          likesCount: true,
-          dislikesCount: true,
-          PlaylistVideo: true,
-          status: true,
-          comments: true,
-          thumbnail: true,
-          id: true,
-          title: true,
-          videoUrl: true,
-          viewsCount: true,
-          visibility: true,
+      await this.videoUploadService.convertToResolutions(
+        videoPath,
+        folderPath,
+        validResolutions,
+      );
+      fs.unlinkSync(videoPath);
+      const createdVideo = await this.db.prisma.video.create({
+        data: {
+          title: data.title,
+          description: data.description,
+          thumbnail: data.thumbnail,
+          videoUrl: `${folderPath}/original.mp4`,
+          duration: resolution.duration,
+          status: 'PUBLISHED',
+          visibility: data.visibility,
+          category: data.category,
+          authorId: data.authorId,
         },
       });
+      await Promise.all(
+        validResolutions.map(async (res) => {
+          const resUrl = `uploads/videos/${fileName.split('.')[0]}/${res.height}p.mp4`;
+          await this.db.prisma.videoFormats.create({
+            data: {
+              resolution: `${res.height}p`,
+              url: resUrl,
+              videoId: createdVideo.id,
+            },
+          });
+        }),
+      );
+      return {
+        message: 'success',
+        videoId: createdVideo.id,
+      };
+    } else {
+      console.log('❗ Video juda past sifatli, convert qilish kerak emas.');
+      throw new InternalServerErrorException('Video sifati juda past.');
+    }
+  }
+
+  async watchVideo(id: string, quality: string, range: string, res: Response) {
+    const video = await this.db.prisma.video.findUnique({
+      where: { id },
+      include: { VideoFormats: true },
+    });
+    if (!video) {
+      throw new NotFoundException('Video not found in database');
+    }
+    const formatExists = video.VideoFormats.some(
+      (format) => format.resolution === `${quality}p`,
+    );
+    if (!formatExists) {
+      throw new NotFoundException('Requested video quality not available');
+    }
+    await this.db.prisma.video.update({
+      where: { id },
+      data: {
+        viewsCount: {
+          increment: 1,
+        },
+      },
+    });
+    const baseQuality = `${quality}.mp4`;
+    const videoPath = path.join(
+      process.cwd(),
+      'uploads',
+      'videos',
+      id,
+      baseQuality,
+    );
+    if (!fs.existsSync(videoPath)) {
+      throw new NotFoundException('Video file not found on server');
+    }
+    const { size } = fs.statSync(videoPath);
+    if (!range) {
+      range = `bytes=0-1048575`;
+    }
+    const { start, end, chunkSize } = this.videoUploadService.getChunkProps(
+      range,
+      size,
+    );
+    res.writeHead(206, {
+      'Content-Range': `bytes ${start}-${end}/${size}`,
+      'Accept-Ranges': 'bytes',
+      'Content-Length': chunkSize,
+      'Content-Type': 'video/mp4',
+    });
+    const videoStream = fs.createReadStream(videoPath, { start, end });
+    videoStream.pipe(res);
+    videoStream.on('error', (err) => {
+      console.error('Stream error:', err);
+      res.sendStatus(500);
+    });
+  }
+
+  async getProcess(videoId: string) {
+    try {
+      const videoProcess = await this.db.prisma.video.findFirstOrThrow({
+        where: { id: videoId },
+        select: {
+          id: true,
+          status: true,
+        },
+      });
+      return {
+        success: true,
+        data: {
+          ...videoProcess,
+        },
+      };
     } catch (error) {
       throw new NotFoundException('Video not found');
     }
   }
 
-  async getVideos() {
+  async getVideoDetails(videoId: string) {
     try {
-      return await this.db.prisma.video.findMany({
+      const videoProcess = await this.db.prisma.video.findFirstOrThrow({
+        where: { id: videoId },
         select: {
-          VideoFormats: true,
-          author: true,
-          authorId: true,
-          createdAt: true,
-          description: true,
-          duration: true,
-          likes: true,
-          likesCount: true,
-          dislikesCount: true,
-          PlaylistVideo: true,
-          status: true,
-          comments: true,
-          thumbnail: true,
           id: true,
+          status: true,
+          author: true,
+          category: true,
+          createdAt: true,
           title: true,
-          videoUrl: true,
-          viewsCount: true,
-          visibility: true,
-          _count: true,
+          likes: true,
+          dislikesCount: true,
+          comments: true,
         },
       });
+      return {
+        success: true,
+        data: {
+          ...videoProcess,
+        },
+      };
     } catch (error) {
-      throw new InternalServerErrorException(error);
+      throw new NotFoundException('Video not found');
     }
   }
 
-  async getVideoWithQuery(id: string, query: string) {
+  async updateVideo(videoId: string, userId: string, data: UpdateVideoDto) {
+    const checkVideo = await this.db.prisma.video.findFirst({
+      where: { id: videoId, authorId: userId },
+    });
+    if (!checkVideo)
+      throw new BadRequestException('Video not found or forbid resource');
+    const updatedVideo = await this.db.prisma.video.update({
+      where: { id: videoId },
+      data: { ...data },
+    });
+    return updatedVideo;
+  }
+
+  async deleteVideo(videoId: string, userId: string) {
+    const checkVideo = await this.db.prisma.video.findFirst({
+      where: { id: videoId, authorId: userId },
+    });
+    if (!checkVideo)
+      throw new BadRequestException('Video not found or forbid resource');
+    const updatedVideo = await this.db.prisma.video.delete({
+      where: { id: videoId },
+    });
+    return updatedVideo;
+  }
+
+  async getVideoFeed(
+    limit: number,
+    page: number,
+    category: Category,
+    duration: number,
+  ) {
     try {
-      return await this.db.prisma.videoFormats.findFirstOrThrow({
-        where: { videoId: id, resolution: query },
+      const findVideo = await this.db.prisma.video.findFirst({
+        where: { category: category, duration: duration },
+        take: limit,
+        skip: (page - 1) * limit,
       });
+      return findVideo;
     } catch (error) {
-      throw new NotFoundException('Video not found');
+      throw new BadRequestException('Video not found');
+    }
+  }
+
+  async getVideoTrending() {
+    try {
+      const date = new Date();
+      const findVideo = await this.db.prisma.video.findFirst({
+        where: { createdAt: date },
+      });
+      return findVideo;
+    } catch (error) {
+      throw new BadRequestException('Video not found');
     }
   }
 }

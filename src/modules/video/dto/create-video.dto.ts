@@ -1,5 +1,3 @@
-// src/video/dto/create-video.dto.ts
-
 import {
   IsString,
   IsOptional,
@@ -42,6 +40,29 @@ export class CreateVideoDto {
 
   @IsString()
   authorId: string;
+
+  @IsOptional()
+  @IsEnum(Category)
+  category?: Category;
+}
+
+export class UpdateVideoDto {
+  @IsString()
+  @MaxLength(255)
+  title: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(1000)
+  description?: string;
+
+  @IsOptional()
+  @IsEnum(VideoStatus)
+  status?: VideoStatus;
+
+  @IsOptional()
+  @IsEnum(Visibility)
+  visibility?: Visibility;
 
   @IsOptional()
   @IsEnum(Category)

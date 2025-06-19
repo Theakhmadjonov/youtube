@@ -1,9 +1,8 @@
 import { Global, Module } from "@nestjs/common";
-import { VideoService } from "./video.service";
-import { VideosController } from "./video.controller";
 import { MulterModule } from "@nestjs/platform-express";
 import { fileFilter, multerConfig } from "./multer.config";
-
+import { VideoController } from "./video.controller";
+import { VideoService } from "./video.service";
 
 @Global()
 @Module({
@@ -14,7 +13,7 @@ import { fileFilter, multerConfig } from "./multer.config";
         }),
     ],
     providers: [VideoService],
-    controllers: [VideosController],
+    controllers: [VideoController],
     exports: [VideoService]
 })
 export class VideoModule{ }

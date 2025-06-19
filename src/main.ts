@@ -1,10 +1,8 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import cookieParser from 'cookie-parser';
-import session from 'express-session';
-import { join } from 'path';
+import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import cookieParser from 'cookie-parser';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -16,16 +14,6 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
-  app.use(
-    session({
-      secret: '10e91 092e 12je10 9',
-      resave: false,
-      saveUninitialized: false,
-    }),
-  );
-  app.useStaticAssets(join(process.cwd(), '..', 'uploads'), {
-    prefix: '/uploads/',
-  });
   app.use(cookieParser());
   await app.listen(process.env.PORT ?? 3000);
 }

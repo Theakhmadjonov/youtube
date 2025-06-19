@@ -9,6 +9,9 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import TransformInterceoptor from './common/interceptors/transform.interceptor';
 import { AuthGuard } from './common/guards/auth.guard';
 import { SearchModule } from './modules/search/search.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import VideoUploadService from './core/video-upload.service';
 
 @Module({
   imports: [
@@ -19,6 +22,9 @@ import { SearchModule } from './modules/search/search.module';
     PlaylistModule,
     AdminModule,
     SearchModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'uploads'),
+    }),
   ],
   controllers: [],
   providers: [
@@ -30,6 +36,7 @@ import { SearchModule } from './modules/search/search.module';
       provide: APP_GUARD,
       useClass: AuthGuard,
     },
+    VideoUploadService
   ],
 })
 export class AppModule {}
