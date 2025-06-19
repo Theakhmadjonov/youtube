@@ -1,4 +1,13 @@
-import { Controller, Get, HttpException, HttpStatus, Param, Req, SetMetadata, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  Param,
+  Req,
+  SetMetadata,
+  UseGuards,
+} from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { RoleGuard } from 'src/common/guards/role.guard';
@@ -17,11 +26,7 @@ export class AdminController {
       const userId = req['userId'];
       return await this.adminService.adminDashboard(userId);
     } catch (error) {
-       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
   }
 }

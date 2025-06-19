@@ -86,6 +86,8 @@ export class CommentController {
     try {
       const userId = req['userId'];
       return await this.commentService.togglePin(userId, commentId);
-    } catch (error) {}
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 }

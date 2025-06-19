@@ -48,7 +48,7 @@ export class SearchController {
     }
   }
 
-  @Get()
+  @Get('recommendations')
   async getRecommendations(
     @Query('limit') limit = '20',
     @Query('page') page = '1',
