@@ -22,20 +22,14 @@ export class AuthService {
   ) {}
 
   async sendOtp(createAurhDto: CreateAuthDto) {
-    try {
-      const findUser = await this.db.prisma.user.findUnique({
-        where: { phone: createAurhDto.phone },
-      });
-      if (findUser) throw new ConflictException('User alreday exists');
-      const res = await this.otp.sendOtp(createAurhDto.phone);
-      console.log(res);
-      if (!res) throw new InternalServerErrorException('Server error');
-      return {
-        message: 'Code sended',
-      };
-    } catch (error) {
-      throw new InternalServerErrorException('Internal server error');
-    }
+    const findUser = await this.db.prisma.user.findUnique({
+      where: { phone: createAurhDto.phone },
+    });
+    if (findUser) throw new ConflictException('User alreday exists');
+    const res = await this.otp.sendOtp(createAurhDto.phone);
+    return {
+      message: 'Code sended',
+    };
   }
 
   async verifyOtp(data: verifyOtp) {
@@ -57,26 +51,26 @@ export class AuthService {
   }
 
   async register(data: RegisterDto) {
-    try {
-      const findUser = await this.db.prisma.user.findUnique({
-        where: { phone: data.phone },
-      });
-      if (findUser) throw new ConflictException('User alreday exists');
-      const key = `session:${data.phone}`;
-      await this.otp.CheckTokenUSer(key, data.session_token);
-      const hashedPassword = await bcrypt.hash(data.password, 12);
-      const user = await this.db.prisma.user.create({
-        data: {
-          ...data,
-          password: hashedPassword,
-        },
-      });
-      const token = await this.jwt.signAsync({ userId: user.id });
-      await this.otp.delTokenUser(key);
-      return token;
-    } catch (error) {
-      throw new InternalServerErrorException('Internal server error');
-    }
+    const findUser = await this.db.prisma.user.findUnique({
+      where: { phone: data.phone },
+    });
+    if (findUser) throw new ConflictException('User alreday exists');
+    const key = `session:${data.phone}`;
+    await this.otp.CheckTokenUSer(key, data.session_token);
+    const hashedPassword = await bcrypt.hash(data.password, 12);
+    const user = await this.db.prisma.user.create({
+      data: {
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phone: data.phone,
+        username: data.username,
+        password: hashedPassword,
+      },
+    });
+    const token = await this.jwt.signAsync({ userId: user.id });
+    await this.otp.delTokenUser(key);
+    return token;
   }
 
   async sendCodeLogin(data: sendCodeLoginDto) {
@@ -147,9 +141,15 @@ export class AuthService {
   async updatedUSerProfile(data: UpdateAuthDto, userId: string) {
     if (data.password) {
       const hashedPassword = await bcrypt.hash(data.password, 12);
-      return await this.db.prisma.user.update({ where: { id: userId }, data: { ...data, password: hashedPassword } });
+      return await this.db.prisma.user.update({
+        where: { id: userId },
+        data: { ...data, password: hashedPassword },
+      });
     } else {
-      return await this.db.prisma.user.update({ where: { id: userId }, data: { ...data } });
+      return await this.db.prisma.user.update({
+        where: { id: userId },
+        data: { ...data },
+      });
     }
   }
 }

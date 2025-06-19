@@ -12,9 +12,11 @@ import { SearchModule } from './modules/search/search.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import VideoUploadService from './core/video-upload.service';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
+    AuthModule,
     CoreModule,
     VideoAnalyticsModule,
     ChannelModule,
@@ -28,14 +30,14 @@ import VideoUploadService from './core/video-upload.service';
   ],
   controllers: [],
   providers: [
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: TransformInterceoptor,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: AuthGuard,
-    },
+    // {
+    //   provide: APP_INTERCEPTOR,
+    //   useClass: TransformInterceoptor,
+    // },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: AuthGuard,
+    // },
     VideoUploadService
   ],
 })

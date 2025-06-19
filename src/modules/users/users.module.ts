@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import { EmailService } from '../auth/email-otp.service';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
+import { EmaileService } from '../auth/email-otp.service';
 
 @Module({
   controllers: [UsersController],
-  providers: [UsersService, EmailService]
+  providers: [UsersService, EmaileService]
 })
 export class UsersModule {}

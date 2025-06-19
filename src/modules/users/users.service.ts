@@ -5,16 +5,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/core/database/prisma.service';
-import { EmailService } from '../auth/email-otp.service';
 import { OtpService } from '../auth/otp.service';
 import {
   verifyOtpEmail
 } from './dto/create-user.dto';
+import { EmaileService } from '../auth/email-otp.service';
 
 @Injectable()
 export class UsersService {
   constructor(
-    private email: EmailService,
+    private email: EmaileService,
     private db: PrismaService,
     private otp: OtpService,
   ) {}

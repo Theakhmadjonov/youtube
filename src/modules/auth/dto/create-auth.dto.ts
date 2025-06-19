@@ -39,10 +39,6 @@ export class RegisterDto {
   lastName: string;
 
   @IsString()
-  @IsOptional()
-  avatar?: string;
-
-  @IsString()
   @IsPhoneNumber()
   phone: string;
 

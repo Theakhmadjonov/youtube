@@ -2,8 +2,8 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { RedisService } from 'src/core/database/redis.service';
 import { generate } from 'otp-generator';
 import { SMSService } from './sms.service';
-import OtpSecurityService from './otp.security.service';
-import { EmailService } from './email-otp.service';
+import { OtpSecurityService } from './otp.security.service';
+import { EmaileService } from './email-otp.service';
 
 @Injectable()
 export class OtpService {
@@ -11,7 +11,7 @@ export class OtpService {
     private redis: RedisService,
     private sms: SMSService,
     private otpSecurity: OtpSecurityService,
-    private email: EmailService,
+    private email: EmaileService,
   ) {}
 
   generateOtp() {
@@ -34,7 +34,7 @@ export class OtpService {
     await this.checkOtp(`user:${phone}`);
     const tempOtp = this.generateOtp();
     const responseRedis = await this.redis.setOtp(phone, tempOtp);
-    if (responseRedis == 'ok') {
+    if (responseRedis == 'OK') {
       await this.sms.sendSms(phone, tempOtp);
       return true;
     }
@@ -57,6 +57,7 @@ export class OtpService {
       const ttl = await this.redis.getTTl(key);
       throw new BadRequestException(`Please try again after ${ttl} seconds`);
     }
+    return true;
   }
 
   async verifyOtpSendedCode(key: string, code: string, phone: string) {

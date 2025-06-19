@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { RedisService } from 'src/core/database/redis.service';
 
 @Injectable()
-class OtpSecurityService {
+export class OtpSecurityService {
   private maxAttemptsOtp: number = 3;
   private blockedDuration: number = 3600;
   private otpAttemptsDuration: number = 3600;
@@ -78,7 +78,7 @@ class OtpSecurityService {
       throw new BadRequestException({
         message: `You tried too much,please try again after ${Math.floor(ttlKey / 60)} minutes`,
       });
-    }
+    } return true;
   }
 
   async checkIfTemporaryBlockedUserEmail(email: string) {
@@ -96,4 +96,3 @@ class OtpSecurityService {
     await this.redisService.delOtp(key);
   }
 }
-export default OtpSecurityService;

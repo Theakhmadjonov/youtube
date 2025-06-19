@@ -8,7 +8,7 @@ import ENDPOINTS from 'src/common/constants/endpoints';
 
 @Injectable()
 export class SMSService {
-  private email: string = process.env.ESKIZ_EMAIL as string;
+  private email: string = process.env.ESKIZ_USER as string;
   private password: string = process.env.ESKIZ_PASSWORD as string;
   constructor() {}
 

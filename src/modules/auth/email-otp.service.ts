@@ -3,24 +3,27 @@ import { OtpService } from './otp.service';
 import { RedisService } from 'src/core/database/redis.service';
 import { ResendService } from 'nestjs-resend';
 import { ConfigService } from '@nestjs/config';
-import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
-export class EmailService {
+export class EmaileService {
   private MAX_DURATION_LINK: number = 86400;
   private MAX_EMAIL_RATE: number = 30;
   private MAX_HOURLY_LIMIT: number = 10;
 
   constructor(
-    private mail: MailerService,
-    private otp: OtpService,
+    // private otp: OtpService,
     private redis: RedisService,
     private resend: ResendService,
     private config: ConfigService,
   ) {}
 
+  getSessionToken() {
+    const token = crypto.randomUUID();
+    return token;
+  }
+
   async sendLinkEmail(email: string) {
-    const token = this.otp.getSessionToken();
+    const token = this.getSessionToken();
     const fromEmail = this.config.get('HOST_EMAIL') as string;
     await this.setEmailToken(token, email);
     const url = `http://${this.config.get('HOST_EMAIL_URL')}:4000/api/user/verify-email-link?token=${token}`;
