@@ -1,4 +1,4 @@
-name: 🚀 Deploy to Ubuntu Server
+name: Deploy Server
 
 on:
   push:
@@ -7,49 +7,31 @@ on:
 
 jobs:
   deploy:
-    name: Deploy App
     runs-on: ubuntu-latest
-
     env:
       SERVER_HOST: ${{ secrets.SERVER_HOST }}
       SERVER_USER: ${{ secrets.SERVER_USER }}
-      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-
       PORT: ${{ secrets.PORT }}
-      DATABASE_USER: ${{ secrets.DATABASE_USER }}
-      DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-      DATABASE_DB: ${{ secrets.DATABASE_DB }}
-      JWT_KEY: ${{ secrets.JWT_KEY }}
-      REDIS_PORT: ${{ secrets.REDIS_PORT }}
-      REDIS_HOST: ${{ secrets.REDIS_HOST }}
-      POSTGRES_DATABASE_URL: postgresql://${{ secrets.DATABASE_USER }}:${{ secrets.DATABASE_PASSWORD }}@localhost:5432/${{ secrets.DATABASE_DB }}
-
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
     steps:
-      - name: Checkout repository
+      - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Create SSH key file
+      - name: Deploy over SSH
         run: |
           echo "$SSH_PRIVATE_KEY" > key.pem
           chmod 600 key.pem
-
-      - name: Deploy to server via SSH
-        run: |
-          ssh -i key.pem -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST <<EOF
-            # Loyihaga kirish
-            cd /home/ubuntu/nest-app
-
-            # .env faylni yaratish
+          ssh -i key.pem -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST <<'EOF'
+            cd /home/ubuntu/your-project-folder
             echo "PORT=${PORT}" > .env
-            echo "DATABASE_USER=${DATABASE_USER}" >> .env
-            echo "DATABASE_PASSWORD=${DATABASE_PASSWORD}" >> .env
-            echo "DATABASE_DB=${DATABASE_DB}" >> .env
-            echo "DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@localhost:5432/${DATABASE_DB}" >> .env
-            echo "JWT_KEY=${JWT_KEY}" >> .env
-            echo "REDIS_PORT=${REDIS_PORT}" >> .env
-            echo "REDIS_HOST=${REDIS_HOST}" >> .env
+            echo "POSTGRES_USER=${POSTGRES_USER}" >> .env
+            echo "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}" >> .env
+            echo "POSTGRES_DB=${POSTGRES_DB}" >> .env
+            echo "DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}" >> .env
 
-            # Docker Compose build & restart
-            sudo docker compose down
-            sudo docker-compose up --build -d
+            docker compose down
+            docker compose up --build -d
           EOF
