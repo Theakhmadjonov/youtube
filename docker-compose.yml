@@ -6,7 +6,7 @@ services:
       [
         'sh',
         '-c',
-        'npx prisma db push && npx prisma generate && yarn start:prod',
+        'npx prisma init && npx prisma db push && npx prisma generate && yarn start:prod',
       ]
     ports:
       - '${PORT}:${PORT}'
