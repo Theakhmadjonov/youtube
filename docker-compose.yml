@@ -33,12 +33,13 @@ services:
   nginx:
     image: nginx:latest
     container_name: youtube_clone_nginx
-    restart: always
     ports:
       - '80:80'
+      - '443:443'
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - ./uploads:/app/uploads:ro
+      - ~/certs:/etc/nginx/certs:ro
     depends_on:
       - backend
 
