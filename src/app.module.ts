@@ -34,10 +34,10 @@ import { AuthModule } from './modules/auth/auth.module';
       provide: APP_INTERCEPTOR,
       useClass: TransformInterceoptor,
     },
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: AuthGuard,
-    // },
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
     VideoUploadService,
   ],
 })
