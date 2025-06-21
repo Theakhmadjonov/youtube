@@ -10,7 +10,6 @@ import path from 'path';
 import { PrismaService } from 'src/core/database/prisma.service';
 import VideoUploadService from 'src/core/video-upload.service';
 import { CreateVideoDto, UpdateVideoDto } from './dto/create-video.dto';
-// import { Category } from '@prisma/client';
 
 @Injectable()
 export class VideoService {
