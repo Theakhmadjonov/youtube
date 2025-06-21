@@ -25,7 +25,7 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > key.pem
           chmod 600 key.pem
           ssh -i key.pem -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST <<'EOF'
-            cd /home/ubuntu/your-project-folder
+            cd /home/ubuntu/nest-app
             echo "PORT=${PORT}" > .env
             echo "POSTGRES_USER=${POSTGRES_USER}" >> .env
             echo "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}" >> .env
