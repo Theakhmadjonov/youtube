@@ -1,7 +1,11 @@
 FROM node:22-alpine
-WORKDIR /nest-app
+WORKDIR /app --frozen-lockfile && yarn cache clean
+
 COPY package*.json yarn.lock ./
-RUN yarn install --frozen-lockfile && yarn cache clean
+RUN yarn install
+
 COPY . .
-EXPOSE 4000
+
+RUN npx prisma generate
+
 RUN yarn build
