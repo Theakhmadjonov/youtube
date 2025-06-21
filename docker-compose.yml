@@ -2,7 +2,12 @@ services:
   backend:
     build:
       context: .
-    command: ['sh', '-c', 'npx prisma db push && yarn start:prod']
+    command:
+      [
+        'sh',
+        '-c',
+        'npx prisma db push && npx prisma generate && yarn start:prod',
+      ]
     ports:
       - '${PORT}:${PORT}'
     env_file:
