@@ -10,7 +10,6 @@ import path from 'path';
 import { PrismaService } from 'src/core/database/prisma.service';
 import VideoUploadService from 'src/core/video-upload.service';
 import { CreateVideoDto, UpdateVideoDto } from './dto/create-video.dto';
-import { Category } from '@prisma/client';
 
 @Injectable()
 export class VideoService {
@@ -57,8 +56,8 @@ export class VideoService {
           videoUrl: `${folderPath}/original.mp4`,
           duration: resolution.duration,
           status: 'PUBLISHED',
-          visibility: data.visibility,
-          category: data.category,
+          visibility: 'PUBLIC',
+          category: 'ENTERTAINMENT',
           authorId: data.authorId,
         },
       });
@@ -194,7 +193,12 @@ export class VideoService {
       throw new BadRequestException('Video not found or forbid resource');
     const updatedVideo = await this.db.prisma.video.update({
       where: { id: videoId },
-      data: { ...data },
+      data: {
+        ...data,
+        visibility: 'PUBLIC',
+        status: 'PUBLISHED',
+        category: 'ENTERTAINMENT',
+      },
     });
     return updatedVideo;
   }
@@ -214,12 +218,12 @@ export class VideoService {
   async getVideoFeed(
     limit: number,
     page: number,
-    category: Category,
+    category: String,
     duration: number,
   ) {
     try {
       const findVideo = await this.db.prisma.video.findFirst({
-        where: { category: category, duration: duration },
+        where: { category: 'ENTERTAINMENT', duration: duration },
         take: limit,
         skip: (page - 1) * limit,
       });

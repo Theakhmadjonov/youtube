@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { PrismaService } from 'src/core/database/prisma.service';
-import { LikeType } from '@prisma/client';
+// import { LikeType } from '@prisma/client';
 
 @Injectable()
 export class CommentService {
@@ -68,13 +68,15 @@ export class CommentService {
   }
 
   async addLike(userId: string, commentId: string) {
-    const existComment = await this.db.prisma.comment.findFirst({ where: { id: commentId } });
+    const existComment = await this.db.prisma.comment.findFirst({
+      where: { id: commentId },
+    });
     if (!existComment) throw new NotFoundException('Comment not found');
-       await this.db.prisma.like.deleteMany({
+    await this.db.prisma.like.deleteMany({
       where: {
         userId,
         commentId,
-        type: LikeType.DISLIKE,
+        type: 'DISLIKE',
       },
     });
     const addedLIke = await this.db.prisma.like.upsert({
@@ -82,27 +84,29 @@ export class CommentService {
         userId_commentId_type: {
           userId,
           commentId,
-          type: LikeType.LIKE,
+          type: 'LIKE'
         },
       },
       update: {},
       create: {
         userId,
         commentId,
-        type: LikeType.LIKE,
+        type: 'LIKE'
       },
     });
     return addedLIke;
   }
 
   async addDisLike(userId: string, commentId: string) {
-    const existComment = await this.db.prisma.comment.findFirst({ where: { id: commentId } });
+    const existComment = await this.db.prisma.comment.findFirst({
+      where: { id: commentId },
+    });
     if (!existComment) throw new NotFoundException('Comment not found');
-       await this.db.prisma.like.deleteMany({
+    await this.db.prisma.like.deleteMany({
       where: {
         userId,
         commentId,
-        type: LikeType.LIKE,
+        type: 'LIKE'
       },
     });
     const addedDisLIke = await this.db.prisma.like.upsert({
@@ -110,32 +114,34 @@ export class CommentService {
         userId_commentId_type: {
           userId,
           commentId,
-          type: LikeType.DISLIKE,
+          type: 'DISLIKE'
         },
       },
       update: {},
       create: {
         userId,
         commentId,
-        type: LikeType.DISLIKE,
+        type: 'DISLIKE'
       },
     });
     return addedDisLIke;
   }
 
   async deleteLike(userId: string, commentId: string) {
-    const existComment = await this.db.prisma.comment.findFirst({ where: { id: commentId } });
+    const existComment = await this.db.prisma.comment.findFirst({
+      where: { id: commentId },
+    });
     if (!existComment) throw new NotFoundException('Comment not found');
-       await this.db.prisma.like.deleteMany({
-      where: {
+    await this.db.prisma.like.deleteMany({
+      where: { 
         userId,
         commentId,
-        type: LikeType.LIKE,
+        type: 'LIKE'
       },
     });
   }
 
-   async togglePin(commentId: string, userId: string) {
+  async togglePin(commentId: string, userId: string) {
     const comment = await this.db.prisma.comment.findUnique({
       where: { id: commentId },
       include: { video: true },

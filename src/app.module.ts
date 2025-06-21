@@ -30,15 +30,15 @@ import { AuthModule } from './modules/auth/auth.module';
   ],
   controllers: [],
   providers: [
-    // {
-    //   provide: APP_INTERCEPTOR,
-    //   useClass: TransformInterceoptor,
-    // },
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: AuthGuard,
-    // },
-    VideoUploadService
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TransformInterceoptor,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+    VideoUploadService,
   ],
 })
 export class AppModule {}

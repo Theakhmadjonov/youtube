@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { VideoStatus, Visibility } from '@prisma/client';
+// import { VideoStatus, Visibility } from '@prisma/client';
 import { subDays, subHours, subMonths, subWeeks, subYears } from 'date-fns';
 import { PrismaService } from 'src/core/database/prisma.service';
 
@@ -109,8 +109,8 @@ export class SearchService {
       ? await this.prisma.prisma.video.findUnique({ where: { id: videoId } })
       : null;
     const where = {
-      status: VideoStatus.PUBLISHED,
-      visibility: Visibility.PUBLIC,
+      status: 'PUBLISHED' as any,
+      visibility: 'PUBLIC' as any,
       ...(video?.category && { category: video.category }),
       ...(video?.id && { NOT: { id: video.id } }),
     };

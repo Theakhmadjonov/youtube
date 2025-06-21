@@ -7,7 +7,7 @@ import {
   Min,
   MaxLength,
 } from 'class-validator';
-import { Category, VideoStatus, Visibility } from '@prisma/client';
+// import { Category, VideoStatus, Visibility } from '@prisma/client';
 
 export class CreateVideoDto {
   @IsString()
@@ -31,19 +31,16 @@ export class CreateVideoDto {
   duration: number;
 
   @IsOptional()
-  @IsEnum(VideoStatus)
-  status?: VideoStatus;
+  status?: string;
 
   @IsOptional()
-  @IsEnum(Visibility)
-  visibility?: Visibility;
+  visibility?: string;
 
   @IsString()
   authorId: string;
 
   @IsOptional()
-  @IsEnum(Category)
-  category?: Category;
+  category?: string;
 }
 
 export class UpdateVideoDto {
@@ -57,14 +54,11 @@ export class UpdateVideoDto {
   description?: string;
 
   @IsOptional()
-  @IsEnum(VideoStatus)
-  status?: VideoStatus;
+  status?: string;
 
   @IsOptional()
-  @IsEnum(Visibility)
-  visibility?: Visibility;
+  visibility?: string;
 
   @IsOptional()
-  @IsEnum(Category)
-  category?: Category;
+  category?: string;
 }
