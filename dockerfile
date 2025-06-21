@@ -8,4 +8,5 @@ COPY . .
 
 RUN npx prisma generate
 
+
 RUN yarn build
