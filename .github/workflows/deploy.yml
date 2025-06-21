@@ -1,4 +1,4 @@
-name: Deploy to Ubuntu Server
+name: 🚀 Deploy to Ubuntu Server
 
 on:
   push:
@@ -7,53 +7,49 @@ on:
 
 jobs:
   deploy:
+    name: Deploy App
     runs-on: ubuntu-latest
 
     env:
-      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      SERVER_USER: ${{ secrets.SERVER_USER }}
       SERVER_HOST: ${{ secrets.SERVER_HOST }}
+      SERVER_USER: ${{ secrets.SERVER_USER }}
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      PORT: ${{ secrets.PORT }}
+      DATABASE_USER: ${{ secrets.DATABASE_USER }}
+      DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+      DATABASE_DB: ${{ secrets.DATABASE_DB }}
+      JWT_KEY: ${{ secrets.JWT_KEY }}
+      REDIS_PORT: ${{ secrets.REDIS_PORT }}
+      REDIS_HOST: ${{ secrets.REDIS_HOST }}
+      POSTGRES_DATABASE_URL: postgresql://${{ secrets.DATABASE_USER }}:${{ secrets.DATABASE_PASSWORD }}@localhost:5432/${{ secrets.DATABASE_DB }}
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Connect and deploy to server
+      - name: Create SSH key file
         run: |
           echo "$SSH_PRIVATE_KEY" > key.pem
           chmod 600 key.pem
 
-          ssh -i key.pem -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST << 'EOF'
-            set -e
-
+      - name: Deploy to server via SSH
+        run: |
+          ssh -i key.pem -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST <<EOF
+            # Loyihaga kirish
             cd /home/ubuntu/nest-app
 
-            echo "Writing .env file..."
+            # .env faylni yaratish
+            echo "PORT=${PORT}" > .env
+            echo "DATABASE_USER=${DATABASE_USER}" >> .env
+            echo "DATABASE_PASSWORD=${DATABASE_PASSWORD}" >> .env
+            echo "DATABASE_DB=${DATABASE_DB}" >> .env
+            echo "DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@localhost:5432/${DATABASE_DB}" >> .env
+            echo "JWT_KEY=${JWT_KEY}" >> .env
+            echo "REDIS_PORT=${REDIS_PORT}" >> .env
+            echo "REDIS_HOST=${REDIS_HOST}" >> .env
 
-            cat <<EOT > .env
-            DATABASE_USER=${{ secrets.DATABASE_USER }}
-            DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
-            DATABASE_DB=${{ secrets.DATABASE_DB }}
-            DATABASE_URL=postgresql://${{ secrets.DATABASE_USER }}:${{ secrets.DATABASE_PASSWORD }}@localhost:5432/${{ secrets.DATABASE_DB }}
-            POSTGRES_DATABASE_URL=postgresql://${{ secrets.DATABASE_USER }}:${{ secrets.DATABASE_PASSWORD }}@postgres:5432/${{ secrets.DATABASE_DB }}
-            PORT=4000
-            REDIS_PORT=6377
-            REDIS_HOST=localhost
-            JWT_KEY=${{ secrets.JWT_KEY }}
-            ESKIZ_USER=${{ secrets.ESKIZ_USER }}
-            ESKIZ_PASSWORD=${{ secrets.ESKIZ_PASSWORD }}
-            RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
-            HOST_EMAIL_URL=localhost
-            HOST_EMAIL=onboarding@resend.dev
-            ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}
-            ADMIN_USERNAME=${{ secrets.ADMIN_USERNAME }}
-            ADMIN_PHONE=${{ secrets.ADMIN_PHONE }}
-            ADMIN_FIRSTNAME=${{ secrets.ADMIN_FIRSTNAME }}
-            ADMIN_LASTNAME=${{ secrets.ADMIN_LASTNAME }}
-            ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
-            EOT
-
-            echo "Rebuilding containers..."
+            # Docker Compose build & restart
             sudo docker compose down
             sudo docker compose up --build -d
-            EOF
+          EOF
