@@ -22,7 +22,7 @@ import path from 'path';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { CreateVideoDto, UpdateVideoDto } from './dto/create-video.dto';
 import { VideoService } from './video.service';
-import { Category } from '@prisma/client';
+// import { Category } from '@prisma/client';
 
 @UseGuards(AuthGuard)
 @Controller()
@@ -120,7 +120,7 @@ export class VideoController {
   async getVideoFeed(
     @Query('limit') limit: string,
     @Query('page') page: string,
-    @Query('category') category: Category,
+    @Query('category') category: String,
     @Query('duration') duration: string,
   ) {
     try {

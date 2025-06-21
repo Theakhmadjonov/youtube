@@ -1,4 +1,3 @@
-import { Visibility } from "@prisma/client";
 import { IsEnum, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class CreatePlaylistDto {
@@ -10,8 +9,7 @@ export class CreatePlaylistDto {
     description?: string;
 
     @IsString()
-    @IsEnum(Visibility)
-    visibility: Visibility
+    visibility: string
 }
 
 export class CreatePlaylistVideoDto {

@@ -23,7 +23,7 @@ export class PlaylistService {
     if (checkPlaylist)
       throw new ConflictException('This playlist already exists');
     const newPlaylist = await this.db.prisma.playlist.create({
-      data: { ...createPlaylistDto, authorId: userId },
+      data: { ...createPlaylistDto, authorId: userId, visibility: 'PUBLIC' },
     });
     return newPlaylist;
   }
@@ -105,6 +105,7 @@ export class PlaylistService {
       where: { id: playlistId },
       data: {
         ...updatePlaylistDto,
+        visibility: 'PUBLIC',
       },
     });
     return updatedPalylist;
